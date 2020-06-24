@@ -1,4 +1,4 @@
-package iansteph.nhlp3;
+package iansteph.nhlp3.cdk;
 
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.Stack;

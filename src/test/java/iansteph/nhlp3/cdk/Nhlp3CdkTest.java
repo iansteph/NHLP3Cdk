@@ -1,4 +1,4 @@
-package iansteph.nhlp3;
+package iansteph.nhlp3.cdk;
 
 import software.amazon.awscdk.core.App;
 import com.fasterxml.jackson.databind.JsonNode;

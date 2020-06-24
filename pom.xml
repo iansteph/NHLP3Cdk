@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>iansteph.nhlp3</groupId>
-    <artifactId>nhlp3_cdk</artifactId>
+    <artifactId>NHLP3Cdk</artifactId>
     <version>0.1</version>
 
     <properties>
@@ -29,7 +29,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.6.0</version>
                 <configuration>
-                    <mainClass>iansteph.nhlp3.Nhlp3CdkApp</mainClass>
+                    <mainClass>iansteph.nhlp3.cdk.Nhlp3CdkApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>
