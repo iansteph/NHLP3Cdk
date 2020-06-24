@@ -3,7 +3,7 @@
          xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.myorg</groupId>
+    <groupId>iansteph.nhlp3</groupId>
     <artifactId>nhlp3_cdk</artifactId>
     <version>0.1</version>
 
@@ -29,7 +29,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.6.0</version>
                 <configuration>
-                    <mainClass>com.myorg.Nhlp3CdkApp</mainClass>
+                    <mainClass>iansteph.nhlp3.Nhlp3CdkApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>
