@@ -8,8 +8,8 @@ import software.amazon.awscdk.core.StackProps;
 public class Nhlp3CdkApp {
 
     public static void main(final String[] args) {
-        App app = new App();
 
+        App app = new App();
         final Environment commonEnvironment = Environment.builder()
                 .region("us-east-1")
                 .build();

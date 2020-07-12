@@ -44,7 +44,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awscdk</groupId>
-            <artifactId>lambda</artifactId>
+            <artifactId>s3</artifactId>
             <version>${cdk.version}</version>
         </dependency>
     
