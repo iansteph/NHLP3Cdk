@@ -22,10 +22,9 @@ public class ShiftPublisherStack extends Stack {
                 .topicName("NHLP3-Shift-Events")
                 .build();
 
-        // S3 bucket to store the packaged asset for the ShiftPublisher lambda function
+        // S3 bucket to store the packaged artifacts for the ShiftPublisher lambda function
         final Bucket shiftPublisherPackagingAssetBucket = Bucket.Builder.create(this, "ShiftPublisherPackagingAssetBucket")
-                .bucketName("nhlp3-shift-publisher-time-on-ice-report-archive")
-                .versioned(true)
+                .bucketName("nhlp3-shift-publisher-artifacts")
                 .build();
     }
 }
