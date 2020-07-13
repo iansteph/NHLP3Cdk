@@ -32,6 +32,7 @@ public class ShiftPublisherStack extends Stack {
         // S3 bucket to store the packaged artifacts for the ShiftPublisher lambda function
         final Bucket shiftPublisherPackagingAssetBucket = Bucket.Builder.create(this, "ShiftPublisherPackagingAssetBucket")
                 .bucketName("nhlp3-shift-publisher-artifacts")
+                .versioned(true)
                 .build();
 
         // DynamoDB Table for the app
