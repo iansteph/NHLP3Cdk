@@ -62,6 +62,11 @@
             <artifactId>sns</artifactId>
             <version>${cdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awscdk</groupId>
+            <artifactId>sqs</artifactId>
+            <version>${cdk.version}</version>
+        </dependency>
 
         <!-- https://mvnrepository.com/artifact/junit/junit -->
         <dependency>
