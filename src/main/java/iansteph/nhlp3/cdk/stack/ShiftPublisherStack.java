@@ -4,8 +4,6 @@ import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.Duration;
 import software.amazon.awscdk.core.Stack;
 import software.amazon.awscdk.core.StackProps;
-import software.amazon.awscdk.services.dynamodb.Attribute;
-import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.Table;
 import software.amazon.awscdk.services.iam.Effect;
 import software.amazon.awscdk.services.iam.PolicyStatement;
@@ -14,26 +12,38 @@ import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.amazon.awscdk.services.s3.Bucket;
+import software.amazon.awscdk.services.s3.IBucket;
 import software.amazon.awscdk.services.sns.Subscription;
 import software.amazon.awscdk.services.sns.SubscriptionProtocol;
 import software.amazon.awscdk.services.sns.Topic;
 import software.amazon.awscdk.services.sqs.Queue;
 import software.amazon.awscdk.services.sqs.QueuePolicy;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 public class ShiftPublisherStack extends Stack {
 
+    private final S3Client s3Client;
+
     public ShiftPublisherStack(final Construct scope, final String id) {
 
-        this(scope, id, null);
+        this(scope, id, null, S3Client.create());
     }
 
-    public ShiftPublisherStack(final Construct scope, final String id, final StackProps props) {
-
+    public ShiftPublisherStack(final Construct scope, final String id, final StackProps props, final S3Client s3Client) {
         super(scope, id, props);
+
+        this.s3Client = s3Client;
 
         // SNS topic for publishing shift events
         final Topic shiftPublishingShiftTopic = Topic.Builder.create(this, "ShiftPublisherSnsTopic")
@@ -67,30 +77,27 @@ public class ShiftPublisherStack extends Stack {
                 .rawMessageDelivery(true)
                 .build();
 
-        // S3 bucket to store the packaged artifacts for the ShiftPublisher lambda function
-        final Bucket shiftPublisherPackagingAssetBucket = Bucket.Builder.create(this, "ShiftPublisherPackagingAssetBucket")
-                .bucketName("nhlp3-shift-publisher-artifacts")
-                .versioned(true)
-                .build();
-
-        // DynamoDB Table for the app
-        final Table nhlp3AggregateTable = Table.Builder.create(this, "Nhlp3AggregateTable")
-                .tableName("NHLP3-Aggregate")
-                .partitionKey(Attribute.builder().name("PK").type(AttributeType.STRING).build())
-                .sortKey(Attribute.builder().name("SK").type(AttributeType.STRING).build())
-                .build();
-
         // Lambda function which publishes shift events to the SNS topic
+        final ListObjectsRequest listObjectsRequest = ListObjectsRequest.builder()
+                .bucket("nhlp3-shift-publisher-artifacts")
+                .build();
+        final ListObjectsResponse listObjectsResponse = s3Client.listObjects(listObjectsRequest);
+        final String lastModifiedS3ObjectCodeAsset = listObjectsResponse.contents().stream()
+                .filter(s3Object -> s3Object.key().startsWith("ShiftPublisher-"))
+                .sorted(Comparator.comparing(S3Object::lastModified).reversed())
+                .collect(Collectors.toList()).get(0).key();
+        System.out.println(format("LastModified S3Object key to use as Lambda function code asset: %s", lastModifiedS3ObjectCodeAsset));
+        final IBucket shiftPublisherPackagingAssetBucket = Bucket.fromBucketName(this, "ShiftPublisherPackagingAssetBucket", "nhlp3-shift-publisher-artifacts");
         final Function shiftPublisherFunction = Function.Builder.create(this, "ShiftPublisherFunction")
                 .functionName("NHLP3-ShiftPublisher-prod")
                 .description("Publishes time on ice report data for both home and away teams for each NHL game")
-                .code(Code.fromBucket(shiftPublisherPackagingAssetBucket, "ShiftPublisher-1.0.0.jar"))
+                .code(Code.fromBucket(shiftPublisherPackagingAssetBucket, lastModifiedS3ObjectCodeAsset))
                 .handler("iansteph.nhlp3.shiftpublisher.handler.ShiftPublisherHandler::handleRequest")
                 .memorySize(1024)
                 .runtime(Runtime.JAVA_8)
                 .timeout(Duration.seconds(60))
                 .build();
         shiftPublishingShiftTopic.grantPublish(shiftPublisherFunction);
-        nhlp3AggregateTable.grantReadWriteData(shiftPublisherFunction);
+        Table.fromTableName(this, "NHLP3AggregateTable", "NHLP3-Aggregate").grantReadWriteData(shiftPublisherFunction);
     }
 }
