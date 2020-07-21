@@ -99,5 +99,12 @@ public class ShiftPublisherStack extends Stack {
                 .build();
         shiftPublishingShiftTopic.grantPublish(shiftPublisherFunction);
         Table.fromTableName(this, "NHLP3AggregateTable", "NHLP3-Aggregate").grantReadWriteData(shiftPublisherFunction);
+
+        // S3 Bucket to store the TOI Report version history as each game progresses
+        final Bucket toiReportVersionHistoryBucket = Bucket.Builder.create(this, "TOIReportVersionHistoryBucket")
+                .bucketName("nhlp3-shift-publisher-toi-report-version-history")
+                .versioned(true)
+                .build();
+        toiReportVersionHistoryBucket.grantWrite(shiftPublisherFunction);
     }
 }
