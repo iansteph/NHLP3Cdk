@@ -10,6 +10,7 @@ import software.amazon.awscdk.services.iam.PolicyStatement;
 import software.amazon.awscdk.services.iam.ServicePrincipal;
 import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
+import software.amazon.awscdk.services.lambda.Permission;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.amazon.awscdk.services.s3.Bucket;
 import software.amazon.awscdk.services.s3.IBucket;
@@ -99,7 +100,13 @@ public class ShiftPublisherStack extends Stack {
                 .build();
         shiftPublishingShiftTopic.grantPublish(shiftPublisherFunction);
         Table.fromTableName(this, "NHLP3AggregateTable", "NHLP3-Aggregate").grantReadWriteData(shiftPublisherFunction);
-
+        final Permission shiftPublisherTriggeredByScheduledCloudWatchEventRuleForGameIdPermission = Permission.builder()
+                .action("lambda:InvokeFunction")
+                .principal(ServicePrincipal.Builder.create("events.amazonaws.com").build())
+                .sourceArn("arn:aws:events:us-east-1:627812672245:rule/GameId-*")
+                .build();
+        shiftPublisherFunction.addPermission("ShiftPublisherTriggeredByScheduledCloudWatchEventRuleForGameIdPermission",
+                shiftPublisherTriggeredByScheduledCloudWatchEventRuleForGameIdPermission);
         // S3 Bucket to store the TOI Report version history as each game progresses
         final Bucket toiReportVersionHistoryBucket = Bucket.Builder.create(this, "TOIReportVersionHistoryBucket")
                 .bucketName("nhlp3-shift-publisher-toi-report-version-history")
