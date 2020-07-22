@@ -12,6 +12,7 @@ import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.Permission;
 import software.amazon.awscdk.services.lambda.Runtime;
+import software.amazon.awscdk.services.s3.BlockPublicAccess;
 import software.amazon.awscdk.services.s3.Bucket;
 import software.amazon.awscdk.services.s3.IBucket;
 import software.amazon.awscdk.services.sns.Subscription;
@@ -111,6 +112,7 @@ public class ShiftPublisherStack extends Stack {
         final Bucket toiReportVersionHistoryBucket = Bucket.Builder.create(this, "TOIReportVersionHistoryBucket")
                 .bucketName("nhlp3-shift-publisher-toi-report-version-history")
                 .versioned(true)
+                .blockPublicAccess(BlockPublicAccess.BLOCK_ALL)
                 .build();
         toiReportVersionHistoryBucket.grantWrite(shiftPublisherFunction);
     }
