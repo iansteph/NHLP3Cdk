@@ -7,6 +7,7 @@ import software.amazon.awscdk.core.StackProps;
 import software.amazon.awscdk.services.dynamodb.Table;
 import software.amazon.awscdk.services.iam.Effect;
 import software.amazon.awscdk.services.iam.PolicyStatement;
+import software.amazon.awscdk.services.iam.Role;
 import software.amazon.awscdk.services.iam.ServicePrincipal;
 import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
@@ -90,9 +91,19 @@ public class ShiftPublisherStack extends Stack {
                 .collect(Collectors.toList()).get(0).key();
         System.out.println(format("LastModified S3Object key to use as Lambda function code asset: %s", lastModifiedS3ObjectCodeAsset));
         final IBucket shiftPublisherPackagingAssetBucket = Bucket.fromBucketName(this, "ShiftPublisherPackagingAssetBucket", "nhlp3-shift-publisher-artifacts");
+        final Role shiftPublisherRole = Role.Builder.create(this, "ShiftPublisherFunctionServiceRole")
+                .assumedBy(ServicePrincipal.Builder.create("lambda.amazonaws.com").build())
+                .build();
+        final PolicyStatement cloudWatchEventsAssumeRolePolicyStatement = PolicyStatement.Builder.create()
+                .effect(Effect.ALLOW)
+                .principals(Collections.singletonList(ServicePrincipal.Builder.create("events.amazonaws.com").build()))
+                .actions(Collections.singletonList("sts:AssumeRole"))
+                .build();
+        shiftPublisherRole.getAssumeRolePolicy().addStatements(cloudWatchEventsAssumeRolePolicyStatement);
         final Function shiftPublisherFunction = Function.Builder.create(this, "ShiftPublisherFunction")
                 .functionName("NHLP3-ShiftPublisher-prod")
                 .description("Publishes time on ice report data for both home and away teams for each NHL game")
+                .role(shiftPublisherRole)
                 .code(Code.fromBucket(shiftPublisherPackagingAssetBucket, lastModifiedS3ObjectCodeAsset))
                 .handler("iansteph.nhlp3.shiftpublisher.handler.ShiftPublisherHandler::handleRequest")
                 .memorySize(1024)
