@@ -6,6 +6,7 @@ import software.amazon.awscdk.core.Stack;
 import software.amazon.awscdk.core.StackProps;
 import software.amazon.awscdk.services.dynamodb.Table;
 import software.amazon.awscdk.services.iam.Effect;
+import software.amazon.awscdk.services.iam.ManagedPolicy;
 import software.amazon.awscdk.services.iam.PolicyStatement;
 import software.amazon.awscdk.services.iam.Role;
 import software.amazon.awscdk.services.iam.ServicePrincipal;
@@ -94,6 +95,7 @@ public class ShiftPublisherStack extends Stack {
         final Role shiftPublisherRole = Role.Builder.create(this, "ShiftPublisherFunctionServiceRole")
                 .assumedBy(ServicePrincipal.Builder.create("lambda.amazonaws.com").build())
                 .build();
+        shiftPublisherRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("CloudWatchLogsFullAccess"));
         final PolicyStatement cloudWatchEventsAssumeRolePolicyStatement = PolicyStatement.Builder.create()
                 .effect(Effect.ALLOW)
                 .principals(Collections.singletonList(ServicePrincipal.Builder.create("events.amazonaws.com").build()))
